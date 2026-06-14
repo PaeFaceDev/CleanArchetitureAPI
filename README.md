@@ -137,7 +137,7 @@ dotnet ef database update
 Start the API:
 
 ```bash
-dotnet run
+dotnet run --project .\Persistence
 ```
 
 Or:
