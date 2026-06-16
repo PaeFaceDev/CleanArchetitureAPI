@@ -1,9 +1,14 @@
+using Application.UseCases.TodoList;
+using Infrastructure;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddScoped<TodoListUseCase>();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("Sample", new OpenApiInfo { Version = "v1", Title = "Sample API" });
