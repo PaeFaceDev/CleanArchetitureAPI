@@ -27,7 +27,7 @@ namespace Infrastructure.Persistence.Database.TodoListMysql
                     );
                 }
             );
-            services.AddScoped<ITodoListRepositories,GetTodoListRepositories>();
+            services.AddScoped<ITodoListRepositories, GetTodoListRepositories>();
             return services;
 
         }

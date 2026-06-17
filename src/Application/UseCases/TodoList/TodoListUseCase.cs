@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Dtos.TodoList;
+using Application.Dtos.TodoList.Insert;
+using Domain.Entities.Create;
 using Domain.Repositories.TodoList;
 
 namespace Application.UseCases.TodoList
@@ -25,5 +27,22 @@ namespace Application.UseCases.TodoList
                 Name = e.Name
             }).ToList();
         }
+
+        public async Task<string> CreateTodoList(TodoListInsertDtos argument)
+        {
+            if (argument == null)
+            {
+                return "argument Not Found!";
+            }
+            var newArgument = new TodoListCreate
+            {
+                Category = argument.Category,
+                Name = argument.Name
+            };
+            await _todoListRepositories.CreateTodoListAsync(newArgument);
+            return "";
+        }
+
+
     }
 }

@@ -21,5 +21,9 @@ namespace Infrastructure.Persistence.Repositories.TodoList
             var resulte = await _todoListDbContext.TodoList.Select(e=>e).ToListAsync();
             return resulte;
         }
+        public async Task<string> CreateTodoListAsync(TodoListInser)
+        {
+            
+        } 
     }
 }

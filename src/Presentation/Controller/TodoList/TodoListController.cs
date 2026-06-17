@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Dtos.TodoList;
+using Application.Dtos.TodoList.Insert;
 using Application.Response;
 using Application.UseCases.TodoList;
 using Microsoft.AspNetCore.Mvc;
@@ -27,6 +28,19 @@ namespace Presentation.Controller.TodoList
             return Ok(new ApiResponse<TodoListDtos>()
             {
                 Data = resulte
+            });
+        }
+
+        [HttpPost("[action]")]
+        public async Task<IActionResult> CreateTodoListAsync([FromBody] TodoListInsertDtos argument)
+        {
+            await _todoListUseCase1.CreateTodoList(argument);
+            return Ok(new ApiResponse<List<string>>
+            {
+                Code = "200",
+                Messages = "Create Data Success",
+                Data = [],
+                Status = true
             });
         }
     }
