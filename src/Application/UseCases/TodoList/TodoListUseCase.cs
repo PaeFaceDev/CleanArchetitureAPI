@@ -39,8 +39,8 @@ namespace Application.UseCases.TodoList
                 Category = argument.Category,
                 Name = argument.Name
             };
-            await _todoListRepositories.CreateTodoListAsync(newArgument);
-            return "";
+            var result = await _todoListRepositories.CreateTodoListAsync(newArgument);
+            return result;
         }
 
 
