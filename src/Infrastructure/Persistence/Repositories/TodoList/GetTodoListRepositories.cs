@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Domain.Entities;
 using Domain.Entities.Create;
+using Domain.Entities.Update;
 using Domain.Repositories.TodoList;
 using Infrastructure.Persistence.Database.TodoListMysql;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,22 @@ namespace Infrastructure.Persistence.Repositories.TodoList
             await _todoListDbContext.SaveChangesAsync();
 
             return "Create Data Sccess";
+        }
+
+        public async Task<string> UpdateTodoList(TodoListUpdate filter)
+        {
+            var dataInsert = new Todolist()
+            {
+                Name = filter.Name
+            };
+            var resulte = await _todoListDbContext.TodoList.FirstOrDefaultAsync(id => id.Id == filter.Id);
+            if (resulte == null)
+            {
+                return "Not Have Data on Database!!";
+            }
+            resulte.Name = filter.Name;
+            await _todoListDbContext.SaveChangesAsync();
+            return "Done.";
         }
     }
 }

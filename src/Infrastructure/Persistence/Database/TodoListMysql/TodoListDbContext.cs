@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Domain.Entities;
+using Domain.Entities.Update;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Database.TodoListMysql

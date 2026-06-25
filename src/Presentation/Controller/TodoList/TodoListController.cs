@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Application.Dtos.TodoList;
 using Application.Dtos.TodoList.Insert;
+using Application.Dtos.TodoList.Update;
 using Application.Response;
 using Application.UseCases.TodoList;
 using Microsoft.AspNetCore.Mvc;
@@ -39,6 +40,19 @@ namespace Presentation.Controller.TodoList
             {
                 Code = "200",
                 Messages = "Create Data Success",
+                Data = [],
+                Status = true
+            });
+        }
+
+        [HttpPut("[action]")]
+        public async Task<IActionResult> UpdateTodoList([FromQuery] TodoListUpdateDtos argument)
+        {
+            await _todoListUseCase1.UpdateTodoList(argument);
+            return Ok(new ApiResponse<List<string>>
+            {
+                Code = "200",
+                Messages = "Update Data Success",
                 Data = [],
                 Status = true
             });

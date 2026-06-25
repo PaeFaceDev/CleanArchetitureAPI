@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Domain.Entities;
 using Domain.Entities.Create;
+using Domain.Entities.Update;
 
 namespace Domain.Repositories.TodoList
 {
@@ -11,5 +12,6 @@ namespace Domain.Repositories.TodoList
     {
         Task<List<Todolist>> GetTodolistMany();
         Task<string> CreateTodoListAsync(TodoListCreate argument);
+        Task<string> UpdateTodoList(TodoListUpdate argument);
     }
 }

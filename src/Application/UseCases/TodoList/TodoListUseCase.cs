@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Application.Dtos.TodoList;
 using Application.Dtos.TodoList.Insert;
+using Application.Dtos.TodoList.Update;
 using Domain.Entities.Create;
+using Domain.Entities.Update;
 using Domain.Repositories.TodoList;
 
 namespace Application.UseCases.TodoList
@@ -40,6 +42,17 @@ namespace Application.UseCases.TodoList
                 Name = argument.Name
             };
             await _todoListRepositories.CreateTodoListAsync(newArgument);
+            return "Done.";
+        }
+
+        public async Task<string> UpdateTodoList(TodoListUpdateDtos filter)
+        {
+            var filterArgument = new TodoListUpdate()
+            {
+                Name = filter.Name,
+                Id = filter.Id
+            };
+            await _todoListRepositories.UpdateTodoList(filterArgument);
             return "Done.";
         }
 
