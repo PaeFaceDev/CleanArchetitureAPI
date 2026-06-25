@@ -55,3 +55,4 @@ nunit-*.xml
 src/Presentation/appsettings.Development.json
 src/Presentation/appsettings.json
 src/Presentation/publish/
+src/LogBuild
