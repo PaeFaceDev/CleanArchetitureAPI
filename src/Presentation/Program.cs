@@ -29,7 +29,7 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/TodoList/swagger.json", "TodoList API");
     c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
 });
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.MapControllers();
 app.Map("/", () => Results.Redirect("/swagger/index.html"));
 
