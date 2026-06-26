@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Dtos.TodoList;
+using Application.Dtos.TodoList.Delete;
 using Application.Dtos.TodoList.Insert;
 using Application.Dtos.TodoList.Update;
 using Domain.Entities.Create;
@@ -56,6 +57,15 @@ namespace Application.UseCases.TodoList
             return "Done.";
         }
 
+        public async Task<string> DeleteTodoList(DeleteTodoListDtos filter)
+        {
 
+            await _todoListRepositories.DeleteTodoList(new Domain.Entities.Delete.DeleteTodoList()
+            {
+                Id = filter.Id,
+                Name = filter.Name
+            });
+            return "Done";
+        }
     }
 }

@@ -7,6 +7,7 @@ using Application.Dtos.TodoList.Insert;
 using Application.Dtos.TodoList.Update;
 using Application.Response;
 using Application.UseCases.TodoList;
+using Domain.Entities.Delete;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controller.TodoList
@@ -56,6 +57,15 @@ namespace Presentation.Controller.TodoList
                 Data = [],
                 Status = true
             });
+        }
+        [HttpDelete("[action]")]
+        public async Task<IActionResult> DeleteTodoList([FromQuery] DeleteTodoList filter)
+        {
+            return Ok(await _todoListUseCase1.DeleteTodoList(new Application.Dtos.TodoList.Delete.DeleteTodoListDtos()
+            {
+                Id = filter.Id,
+                Name = filter.Name
+            }));
         }
     }
 }

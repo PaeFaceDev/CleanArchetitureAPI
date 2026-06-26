@@ -9,6 +9,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddScoped<TodoListUseCase>();
+builder.Services.AddMemoryCache();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("Sample", new OpenApiInfo { Version = "v1", Title = "Sample API" });
