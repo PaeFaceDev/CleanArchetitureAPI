@@ -1,14 +1,19 @@
-using Application.UseCases.TodoList;
 using Infrastructure;
 using Microsoft.OpenApi;
+using Presentation.SignalRHubs;
+using Presentation.DomainEventHandlers;
+using Domain.Common;
+using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddSignalR();
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Application.Features.TodoList.Commands.CreateTodoListCommand).Assembly));
+builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
 
-builder.Services.AddScoped<TodoListUseCase>();
 builder.Services.AddMemoryCache();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -31,7 +36,9 @@ app.UseSwaggerUI(c =>
     c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
 });
 // app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.MapControllers();
+app.MapHub<TodoListHub>("/todolisthub");
 app.Map("/", () => Results.Redirect("/swagger/index.html"));
 
 app.Run();

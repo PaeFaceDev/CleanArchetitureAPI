@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 using Application.Dtos.TodoList;
 using Application.Dtos.TodoList.Insert;
 using Application.Dtos.TodoList.Update;
+using Application.Dtos.TodoList.Delete;
 using Application.Response;
-using Application.UseCases.TodoList;
-using Domain.Entities.Delete;
+using Application.Features.TodoList.Commands;
+using Application.Features.TodoList.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controller.TodoList
@@ -17,55 +19,65 @@ namespace Presentation.Controller.TodoList
     [ApiExplorerSettings(GroupName = "TodoList")]
     public class TodoListController : ControllerBase
     {
-        private readonly TodoListUseCase _todoListUseCase1;
-        public TodoListController(TodoListUseCase todoListUseCase)
+        private readonly IMediator _mediator;
+        
+        public TodoListController(IMediator mediator)
         {
-            _todoListUseCase1 = todoListUseCase;
+            _mediator = mediator;
         }
 
-        [HttpGet("[action]")]
+        [HttpGet("GetTodoListAsync")]
         public async Task<IActionResult> GetTodoListAsync()
         {
-            var resulte = await _todoListUseCase1.GetTodoListDtosAsync();
+            var result = await _mediator.Send(new GetTodoListQuery());
             return Ok(new ApiResponse<TodoListDtos>()
             {
-                Data = resulte
+                Data = result
             });
         }
 
-        [HttpPost("[action]")]
+        [HttpPost("CreateTodoListAsync")]
         public async Task<IActionResult> CreateTodoListAsync([FromBody] TodoListInsertDtos argument)
         {
-            await _todoListUseCase1.CreateTodoList(argument);
+            var command = CreateTodoListCommand.FromDto(argument);
+            var result = await _mediator.Send(command);
+            
             return Ok(new ApiResponse<List<string>>
             {
                 Code = "200",
-                Messages = "Create Data Success",
+                Messages = result,
                 Data = [],
                 Status = true
             });
         }
 
-        [HttpPut("[action]")]
+        [HttpPut("UpdateTodoList")]
         public async Task<IActionResult> UpdateTodoList([FromQuery] TodoListUpdateDtos argument)
         {
-            await _todoListUseCase1.UpdateTodoList(argument);
+            var command = UpdateTodoListCommand.FromDto(argument);
+            var result = await _mediator.Send(command);
+            
             return Ok(new ApiResponse<List<string>>
             {
                 Code = "200",
-                Messages = "Update Data Success",
+                Messages = result,
                 Data = [],
                 Status = true
             });
         }
-        [HttpDelete("[action]")]
-        public async Task<IActionResult> DeleteTodoList([FromQuery] DeleteTodoList filter)
+        [HttpDelete("DeleteTodoList")]
+        public async Task<IActionResult> DeleteTodoList([FromQuery] DeleteTodoListDtos filter)
         {
-            return Ok(await _todoListUseCase1.DeleteTodoList(new Application.Dtos.TodoList.Delete.DeleteTodoListDtos()
+            var command = DeleteTodoListCommand.FromDto(filter);
+            var result = await _mediator.Send(command);
+            
+            return Ok(new ApiResponse<List<string>>
             {
-                Id = filter.Id,
-                Name = filter.Name
-            }));
+                Code = "200",
+                Messages = result,
+                Data = [],
+                Status = true
+            });
         }
     }
 }

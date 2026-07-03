@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Domain.Entities;
-using Domain.Entities.Create;
-using Domain.Entities.Delete;
-using Domain.Entities.Update;
 using Domain.Repositories.TodoList;
 using Infrastructure.Persistence.Database.TodoListMysql;
 using Microsoft.EntityFrameworkCore;
@@ -42,7 +39,7 @@ namespace Infrastructure.Persistence.Repositories.TodoList
             }
             return todos;
         }
-        public async Task<string> CreateTodoListAsync(TodoListCreate argument)
+        public async Task<string> CreateTodoListAsync(TodoListAggregate argument)
         {
             var dataInsert = new Todolist()
             {
@@ -51,33 +48,41 @@ namespace Infrastructure.Persistence.Repositories.TodoList
             };
             _todoListDbContext.TodoList.Add(dataInsert);
             await _todoListDbContext.SaveChangesAsync();
+            
+            if (dataInsert.Id.HasValue)
+            {
+                argument.SetId(dataInsert.Id.Value);
+                argument.AddDomainEvent(new Domain.Events.TodoListCreatedEvent(dataInsert.Id.Value, argument.Name, argument.Category));
+            }
 
-            return "Create Data Sccess";
+            return "Create Data Success";
         }
 
-        public async Task<string> UpdateTodoList(TodoListUpdate filter)
+        public async Task<string> UpdateTodoList(TodoListAggregate argument)
         {
-            var dataInsert = new Todolist()
-            {
-                Name = filter.Name
-            };
-            var resulte = await _todoListDbContext.TodoList.FirstOrDefaultAsync(id => id.Id == filter.Id);
+            var resulte = await _todoListDbContext.TodoList.FirstOrDefaultAsync(id => id.Id == argument.Id);
             if (resulte == null)
             {
                 return "Not Have Data on Database!!";
             }
-            resulte.Name = filter.Name;
+            var oldName = resulte.Name ?? string.Empty;
+            resulte.Name = argument.Name;
             await _todoListDbContext.SaveChangesAsync();
+            
+            argument.AddDomainEvent(new Domain.Events.TodoListUpdatedEvent(argument.Id, oldName, argument.Name, argument.Category));
+            
             return "Done.";
         }
 
-        public async Task<string> DeleteTodoList(DeleteTodoList filter)
+        public async Task<string> DeleteTodoList(TodoListAggregate argument)
         {
-            var resual = await _todoListDbContext.TodoList.FindAsync(filter.Id);
+            var resual = await _todoListDbContext.TodoList.FindAsync(argument.Id);
             if (resual != null)
             {
                 _todoListDbContext.TodoList.Remove(resual);
                 await _todoListDbContext.SaveChangesAsync();
+                
+                argument.AddDomainEvent(new Domain.Events.TodoListDeletedEvent(argument.Id, argument.Name, argument.Category));
             }
             return "Done.";
         }

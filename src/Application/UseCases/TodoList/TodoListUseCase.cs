@@ -6,8 +6,7 @@ using Application.Dtos.TodoList;
 using Application.Dtos.TodoList.Delete;
 using Application.Dtos.TodoList.Insert;
 using Application.Dtos.TodoList.Update;
-using Domain.Entities.Create;
-using Domain.Entities.Update;
+using Domain.Entities;
 using Domain.Repositories.TodoList;
 
 namespace Application.UseCases.TodoList
@@ -37,34 +36,24 @@ namespace Application.UseCases.TodoList
             {
                 return "argument Not Found!";
             }
-            var newArgument = new TodoListCreate
-            {
-                Category = argument.Category,
-                Name = argument.Name
-            };
+            var newArgument = new TodoListAggregate(argument.Name, argument.Category);
             await _todoListRepositories.CreateTodoListAsync(newArgument);
             return "Done.";
         }
 
         public async Task<string> UpdateTodoList(TodoListUpdateDtos filter)
         {
-            var filterArgument = new TodoListUpdate()
-            {
-                Name = filter.Name,
-                Id = filter.Id
-            };
+            var filterArgument = new TodoListAggregate(filter.Name);
+            filterArgument.SetId(filter.Id);
             await _todoListRepositories.UpdateTodoList(filterArgument);
             return "Done.";
         }
 
         public async Task<string> DeleteTodoList(DeleteTodoListDtos filter)
         {
-
-            await _todoListRepositories.DeleteTodoList(new Domain.Entities.Delete.DeleteTodoList()
-            {
-                Id = filter.Id,
-                Name = filter.Name
-            });
+            var filterArgument = new TodoListAggregate(filter.Name, filter.Category);
+            filterArgument.SetId(filter.Id);
+            await _todoListRepositories.DeleteTodoList(filterArgument);
             return "Done";
         }
     }

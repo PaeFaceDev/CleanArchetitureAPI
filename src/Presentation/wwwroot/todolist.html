@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>TodoList Realtime</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .nav-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .nav-btn.active {
+            background: #007bff;
+            color: white;
+        }
+        .nav-btn:not(.active) {
+            background: #e9ecef;
+            color: #495057;
+        }
+        .nav-btn:not(.active):hover {
+            background: #dee2e6;
+        }
+        .status {
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+        .connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .todo-list {
+            list-style: none;
+            padding: 0;
+        }
+        .todo-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .todo-item .info {
+            flex: 1;
+        }
+        .todo-item .name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+        }
+        .todo-item .category {
+            color: #6c757d;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        .todo-item .actions {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .edit-btn {
+            background: #ffc107;
+            color: #212529;
+        }
+        .edit-btn:hover {
+            background: #e0a800;
+        }
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+        .delete-btn:hover {
+            background: #c82333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .submit-btn:hover {
+            background: #0056b3;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .log {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+        }
+        .log-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+        .log-entry {
+            padding: 5px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 12px;
+        }
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        .action-create {
+            color: #28a745;
+        }
+        .action-update {
+            color: #007bff;
+        }
+        .action-delete {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>TodoList Realtime</h1>
+            <div class="nav-buttons">
+                <button class="nav-btn active" onclick="showPage('list')">List Data</button>
+                <button class="nav-btn" onclick="showPage('insert')">Insert Data</button>
+            </div>
+        </div>
+        
+        <div id="status" class="status disconnected">Disconnected</div>
+        
+        <!-- List Data Page -->
+        <div id="listPage" class="page active">
+            <div id="todoListContainer">
+                <div class="loading">Loading TodoList...</div>
+            </div>
+            
+            <div class="log">
+                <div class="log-title">Realtime Activity Log</div>
+                <div id="log">
+                    <div class="log-entry">Waiting for updates...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Insert Data Page -->
+        <div id="insertPage" class="page">
+            <h2>Add New TodoList</h2>
+            <form id="insertForm">
+                <div class="form-group">
+                    <label for="name">Name *</label>
+                    <input type="text" id="name" name="name" required placeholder="Enter todo name">
+                </div>
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <input type="text" id="category" name="category" placeholder="Enter category (optional)">
+                </div>
+                <button type="submit" class="submit-btn">Add TodoList</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/todolisthub")
+            .withAutomaticReconnect()
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+        function showPage(pageName) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Remove active class from all nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageName + 'Page').classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            // Load data when showing list page
+            if (pageName === 'list') {
+                loadTodoList();
+            }
+        }
+
+        function addLogEntry(action, data) {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const actionClass = `action-${action}`;
+            
+            entry.innerHTML = `
+                <strong>[${timestamp}]</strong> 
+                <span class="${actionClass}">${action.toUpperCase()}</span>: 
+                <code>${data}</code>
+            `;
+            
+            logDiv.insertBefore(entry, logDiv.firstChild);
+            
+            // Keep only last 50 entries
+            while (logDiv.children.length > 50) {
+                logDiv.removeChild(logDiv.lastChild);
+            }
+        }
+
+        async function loadTodoList() {
+            const container = document.getElementById('todoListContainer');
+            container.innerHTML = '<div class="loading">Loading TodoList...</div>';
+            
+            try {
+                const response = await fetch('/api/TodoList/GetTodoListAsync');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                console.log('Raw response:', text);
+                
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Invalid JSON response: ' + text.substring(0, 100));
+                }
+                
+                console.log('Parsed result:', result);
+                
+                // Handle different response formats
+                const todoListData = result.data || result.Data || result;
+                const todoListArray = Array.isArray(todoListData) ? todoListData : (todoListData?.data || []);
+                
+                if (todoListArray && todoListArray.length > 0) {
+                    const todoListHtml = '<ul class="todo-list">' + 
+                        todoListArray.map(todo => `
+                            <li class="todo-item">
+                                <div class="info">
+                                    <div class="name">${todo.name || todo.Name || 'Unnamed'}</div>
+                                    <div class="category">${todo.category || todo.Category || 'No category'}</div>
+                                </div>
+                                <div class="actions">
+                                    <button class="action-btn edit-btn" onclick="editTodo(${todo.id || todo.Id})">Edit</button>
+                                    <button class="action-btn delete-btn" onclick="deleteTodo(${todo.id || todo.Id}, '${(todo.name || todo.Name || '').replace(/'/g, "\\'")}')">Delete</button>
+                                </div>
+                            </li>
+                        `).join('') + 
+                        '</ul>';
+                    container.innerHTML = todoListHtml;
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="icon">📭</div>
+                            <p>No TodoList items found</p>
+                            <button class="nav-btn" onclick="showPage('insert')">Add your first TodoList</button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading TodoList:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">❌</div>
+                        <p>Error loading TodoList: ${error.message}</p>
+                        <p style="font-size: 12px; margin-top: 10px;">Check console for details</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function insertTodo(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const category = document.getElementById('category').value;
+            
+            try {
+                const response = await fetch('/api/TodoList/CreateTodoListAsync', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, category })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                console.log('Raw insert response:', text);
+                
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Invalid JSON response: ' + text.substring(0, 100));
+                }
+                
+                console.log('Parsed insert result:', result);
+                
+                // Handle different response formats
+                const status = result.status || result.Status;
+                const messages = result.messages || result.Messages || result.message || result.Message;
+                
+                if (status) {
+                    alert('TodoList created successfully!');
+                    document.getElementById('insertForm').reset();
+                    showPage('list');
+                } else {
+                    alert('Error creating TodoList: ' + messages);
+                }
+            } catch (error) {
+                console.error('Error creating TodoList:', error);
+                alert('Error creating TodoList: ' + error.message);
+            }
+        }
+
+        async function deleteTodo(id, name) {
+            if (!confirm(`Are you sure you want to delete "${name}"?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/TodoList/DeleteTodoList?id=${id}&name=${encodeURIComponent(name)}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                console.log('Raw delete response:', text);
+                
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Invalid JSON response: ' + text.substring(0, 100));
+                }
+                
+                console.log('Parsed delete result:', result);
+                
+                // Handle different response formats
+                const status = result.status || result.Status;
+                const messages = result.messages || result.Messages || result.message || result.Message;
+                
+                if (status) {
+                    alert('TodoList deleted successfully!');
+                    loadTodoList();
+                } else {
+                    alert('Error deleting TodoList: ' + messages);
+                }
+            } catch (error) {
+                console.error('Error deleting TodoList:', error);
+                alert('Error deleting TodoList: ' + error.message);
+            }
+        }
+
+        function editTodo(id) {
+            alert('Edit functionality coming soon! ID: ' + id);
+        }
+
+        connection.start()
+            .then(function () {
+                console.log('SignalR Connected');
+                document.getElementById('status').className = 'status connected';
+                document.getElementById('status').textContent = 'Connected to TodoList Hub';
+                addLogEntry('system', 'Connected to TodoList Hub');
+                loadTodoList();
+            })
+            .catch(function (err) {
+                console.error('SignalR Connection Error: ', err);
+                document.getElementById('status').textContent = 'Connection Error: ' + err;
+            });
+
+        connection.onclose(function () {
+            console.log('SignalR Disconnected');
+            document.getElementById('status').className = 'status disconnected';
+            document.getElementById('status').textContent = 'Disconnected';
+            addLogEntry('system', 'Disconnected from TodoList Hub');
+        });
+
+        connection.onreconnecting(function () {
+            console.log('SignalR Reconnecting...');
+            document.getElementById('status').textContent = 'Reconnecting...';
+        });
+
+        connection.onreconnected(function () {
+            console.log('SignalR Reconnected');
+            document.getElementById('status').className = 'status connected';
+            document.getElementById('status').textContent = 'Connected to TodoList Hub';
+            addLogEntry('system', 'Reconnected to TodoList Hub');
+            loadTodoList();
+        });
+
+        // Listen for TodoList changes and auto-refresh
+        connection.on("TodoListChanged", function (action, data) {
+            console.log(`TodoList ${action}:`, data);
+            addLogEntry(action, data);
+            
+            // Auto-refresh list when on list page
+            if (document.getElementById('listPage').classList.contains('active')) {
+                loadTodoList();
+            }
+        });
+
+        // Listen for messages (optional)
+        connection.on("ReceiveMessage", function (user, message) {
+            console.log(`Message from ${user}: ${message}`);
+            addLogEntry('message', `${user}: ${message}`);
+        });
+
+        // Form submission
+        document.getElementById('insertForm').addEventListener('submit', insertTodo);
+    </script>
+</body>
+</html>
