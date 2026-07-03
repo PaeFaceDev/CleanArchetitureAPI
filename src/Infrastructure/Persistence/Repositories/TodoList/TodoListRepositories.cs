@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Domain.Entities;
 using Domain.Repositories.TodoList;
-using Infrastructure.Persistence.Database.TodoListMysql;
+using Infrastructure.Persistence.Database.TodoList;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 

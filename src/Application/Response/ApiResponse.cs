@@ -10,7 +10,7 @@ namespace Application.Response
         public string? Code { get; set; }
         public bool Status { get; set; } = true;
         public string? Messages { get; set; }
-        public List<T>? Data { get; set; }
+        public T? Data { get; set; }
         public int? Total { get; set; }
     }
 }

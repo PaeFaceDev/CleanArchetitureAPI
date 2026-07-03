@@ -6,7 +6,7 @@ using Domain.Entities;
 using Domain.Entities.Update;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Persistence.Database.TodoListMysql
+namespace Infrastructure.Persistence.Database.TodoList
 {
     public class TodoListDbContext : DbContext
     {

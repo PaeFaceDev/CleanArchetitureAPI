@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Infrastructure.Persistence.Database.TodoListMysql;
+using Infrastructure.Persistence.Database;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,6 +16,7 @@ namespace Infrastructure
         )
         {
             services.AddTodoListDatabase(configuration);
+            services.AddFaceScanDatabase(configuration);
             return services;
         }
         
